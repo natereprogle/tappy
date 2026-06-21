@@ -4,6 +4,10 @@ import { ref } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 
+const props = defineProps<{
+  canCancel?: boolean;
+}>();
+
 const emit = defineEmits<{
   (e: "complete", config: {
     baseUrl: string;
@@ -12,6 +16,7 @@ const emit = defineEmits<{
     defaultUrl: string;
     ownerId: string;
   }): void;
+  (e: "close"): void;
 }>();
 
 const currentStep = ref(1);
@@ -217,30 +222,35 @@ async function openLink() {
 </script>
 
 <template>
-  <div class="onboarding-container glass">
+  <div class="onboarding-container">
     <div class="onboarding-card">
       <!-- Title & Wizard Progress -->
       <div class="onboarding-header">
+        <button v-if="props.canCancel" class="onboarding-close-btn" title="Close setup" @click="emit('close')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="logo-icon"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
         <h1>Welcome to Tappy! Let's get set up.</h1>
         <p class="subtitle">Complete these 3 steps to automatically deploy and configure your redirection backend.</p>
       </div>
 
       <!-- Step Indicators -->
-      <div class="step-indicators">
-        <div :class="['step-tab', currentStep >= 1 ? 'active' : '']">
-          <span class="step-num">1</span>
-          <span class="step-title">Credentials</span>
+      <div class="step-indicators-wrapper">
+        <div class="step-indicators">
+          <div :class="['step-tab', currentStep >= 1 ? 'active' : '']" title="Credentials">
+            <span class="step-num">1</span>
+          </div>
+          <div class="step-divider"></div>
+          <div :class="['step-tab', currentStep >= 2 ? 'active' : '']" title="Deploy Backend">
+            <span class="step-num">2</span>
+          </div>
+          <div class="step-divider"></div>
+          <div :class="['step-tab', currentStep >= 3 ? 'active' : '']" title="Set up Slug">
+            <span class="step-num">3</span>
+          </div>
         </div>
-        <div class="step-divider"></div>
-        <div :class="['step-tab', currentStep >= 2 ? 'active' : '']">
-          <span class="step-num">2</span>
-          <span class="step-title">Deploy Backend</span>
-        </div>
-        <div class="step-divider"></div>
-        <div :class="['step-tab', currentStep >= 3 ? 'active' : '']">
-          <span class="step-num">3</span>
-          <span class="step-title">Set up Slug</span>
+        <div class="step-title-display">
+          Step {{ currentStep }}: {{ currentStep === 1 ? 'Credentials' : currentStep === 2 ? 'Deploy Backend' : 'Set up Slug' }}
         </div>
       </div>
 
@@ -432,69 +442,117 @@ async function openLink() {
 <style scoped>
 .onboarding-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  min-height: 80vh;
   width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  padding-bottom: 24px;
+}
+
+/* Custom Scrollbar for Onboarding */
+.onboarding-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.onboarding-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.onboarding-container::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.25);
+  border-radius: 3px;
+}
+
+.onboarding-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.4);
 }
 
 .onboarding-card {
-  max-width: 650px;
+  max-width: 100%;
   width: 100%;
-  padding: 36px;
+  padding: 16px 8px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 20px;
 }
 
 .onboarding-header {
+  position: relative;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+}
+
+.onboarding-close-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 0;
+}
+
+.onboarding-close-btn:hover {
+  color: var(--text-color);
+  background: rgba(128, 128, 128, 0.15);
 }
 
 .logo-icon {
-  width: 48px;
-  height: 48px;
+  width: 32px;
+  height: 32px;
   color: #38bdf8;
-  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4));
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .onboarding-header h1 {
-  font-size: 26px;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 700;
   letter-spacing: -0.5px;
-  background: linear-gradient(135deg, var(--text-color) 0%, var(--text-muted) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-color);
 }
 
 .subtitle {
   color: var(--text-muted);
-  font-size: 14px;
-  max-width: 480px;
+  font-size: 13px;
+  max-width: 100%;
   line-height: 1.5;
 }
 
 /* Step Progress Indicator */
+.step-indicators-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: rgba(128, 128, 128, 0.05);
+  border: 1px solid var(--border-color);
+  padding: 12px;
+  border-radius: 12px;
+  width: 100%;
+}
+
 .step-indicators {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  background: rgba(128, 128, 128, 0.08);
-  border: 1px solid var(--border-color);
-  padding: 8px 16px;
-  border-radius: 30px;
+  gap: 16px;
+  width: 100%;
 }
 
 .step-tab {
   display: flex;
   align-items: center;
-  gap: 8px;
   opacity: 0.4;
   transition: all 0.3s ease;
 }
@@ -504,8 +562,8 @@ async function openLink() {
 }
 
 .step-num {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: var(--text-muted);
   color: var(--bg-color);
@@ -519,18 +577,20 @@ async function openLink() {
 .step-tab.active .step-num {
   background: #38bdf8;
   color: #0b0f19;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
 }
 
-.step-title {
-  font-size: 12px;
-  font-weight: 600;
+.step-title-display {
+  font-size: 12.5px;
+  font-weight: 700;
   color: var(--text-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .step-divider {
-  width: 32px;
-  height: 1px;
+  width: 48px;
+  height: 2px;
   background: var(--border-color);
 }
 

@@ -13,6 +13,7 @@ import ActivityFeed from "./components/ActivityFeed.vue";
 
 // Navigation / Mode
 const isOnboardingComplete = ref(false);
+const activeTab = ref<"dashboard" | "settings">("dashboard");
 
 // Config States
 const propresenterHost = ref("127.0.0.1");
@@ -79,7 +80,9 @@ async function loadConfig() {
       addLog("info", "No settings found. Entering onboarding flow...");
     }
 
-    // Also see if worker has config already
+    // load_settings already restores the admin token from the OS keychain
+    // into AppState. We call get_worker_config here only to sync the token
+    // back to the Vue layer so that subsequent saveConfig() calls include it.
     const workerConfig = await invoke<WorkerConfig | null>("get_worker_config");
     if (workerConfig) {
       workerAdminToken.value = workerConfig.admin_token;
@@ -343,34 +346,74 @@ onMounted(() => {
 <template>
   <div class="dashboard">
     <!-- ONBOARDING FLOW -->
-    <Onboarding v-if="!isOnboardingComplete" @complete="handleOnboardingComplete" />
+    <Onboarding
+      v-if="!isOnboardingComplete"
+      :can-cancel="!!workerBaseUrl"
+      @complete="handleOnboardingComplete"
+      @close="isOnboardingComplete = true"
+    />
 
     <!-- MAIN DASHBOARD -->
     <template v-else>
       <header class="app-header">
-        <div class="header-logo">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="logo-icon"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
-          <h1>Tappy</h1>
-          <span class="version">v0.1.0</span>
-        </div>
-        <div class="header-actions">
-          <button class="btn btn-setup" @click="isOnboardingComplete = false">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            Onboarding Setup
-          </button>
-          <div class="status-indicator">
-            <span class="status-label">ProPresenter:</span>
-            <span :class="['status-badge', isProPresenterConnected ? 'connected' : 'disconnected']">
-              <span class="pulse-dot"></span>
-              {{ isProPresenterConnected ? 'Connected' : 'Disconnected' }}
-            </span>
+        <div class="header-top">
+          <div class="header-logo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="logo-icon"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+            <h1>Tappy</h1>
+            <span class="version">v0.1.0</span>
           </div>
+          
+          <div class="header-right">
+            <div class="status-dot-wrapper" :title="'ProPresenter: ' + (isProPresenterConnected ? 'Connected' : 'Disconnected')">
+              <span :class="['status-dot', isProPresenterConnected ? 'connected' : 'disconnected']"></span>
+            </div>
+
+            <button 
+              :class="['btn-header-connect', isProPresenterConnected ? 'connected' : '']"
+              :title="isProPresenterConnected ? 'Disconnect from ProPresenter' : 'Connect to ProPresenter'"
+              @click="isProPresenterConnected ? disconnectFromProPresenter() : connectToProPresenter()"
+            >
+              <svg v-if="!isProPresenterConnected" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+              <span>{{ isProPresenterConnected ? 'Disconnect' : 'Connect' }}</span>
+            </button>
+            
+            <button class="btn-onboarding-setup" title="Run Onboarding Setup" @click="isOnboardingComplete = false">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+          </div>
+        </div>
+        
+        <div class="tab-switcher">
+          <button :class="['tab-btn', activeTab === 'dashboard' ? 'active' : '']" @click="activeTab = 'dashboard'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+            Dashboard
+          </button>
+          <button :class="['tab-btn', activeTab === 'settings' ? 'active' : '']" @click="activeTab = 'settings'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Settings
+          </button>
         </div>
       </header>
 
-      <main class="grid-container">
-        <!-- COLUMN 1: CONFIGURATION -->
-        <section class="column">
+      <main class="app-content">
+        <!-- TAB 1: SHOW DASHBOARD -->
+        <div v-if="activeTab === 'dashboard'" class="tab-panel animate-fade">
+          <!-- ACTIVE SLIDE CARD -->
+          <ActiveSlideCard
+            :last-notes="lastNotes"
+            :last-parsed="lastParsed"
+          />
+
+          <!-- REAL-TIME LOG FEED -->
+          <ActivityFeed
+            :logs="logs"
+            @clear="logs = []"
+          />
+        </div>
+
+        <!-- TAB 2: CONFIGURATION -->
+        <div v-else-if="activeTab === 'settings'" class="tab-panel animate-fade">
           <!-- PROPRESENTER SETTINGS -->
           <ProPresenterCard
             v-model:host="propresenterHost"
@@ -398,22 +441,7 @@ onMounted(() => {
             :hasUnsavedChanges="hasUnsavedMappings"
             @push="pushTagMappings"
           />
-        </section>
-
-        <!-- COLUMN 2: REAL-TIME DISPLAY & FEED -->
-        <section class="column">
-          <!-- ACTIVE SLIDE CARD -->
-          <ActiveSlideCard
-            :last-notes="lastNotes"
-            :last-parsed="lastParsed"
-          />
-
-          <!-- REAL-TIME LOG FEED -->
-          <ActivityFeed
-            :logs="logs"
-            @clear="logs = []"
-          />
-        </section>
+        </div>
       </main>
     </template>
 
@@ -476,49 +504,46 @@ onMounted(() => {
 <style>
 /* CSS VARIABLES - Automatically aligned with system light/dark settings */
 :root {
-  /* Light mode palette */
-  --bg-color: #f3f4f6;
-  --bg-gradient: radial-gradient(at 0% 0%, rgba(203, 213, 225, 0.4) 0, transparent 50%),
-                 radial-gradient(at 100% 100%, rgba(241, 245, 249, 0.4) 0, transparent 50%);
-  --text-color: #0f172a;
-  --text-muted: #475569;
+  /* Light mode palette (GitHub / JetBrains style) */
+  --bg-color: #f6f8fa;
+  --bg-gradient: none;
+  --text-color: #1f2328;
+  --text-muted: #657180;
   
-  --card-bg: rgba(255, 255, 255, 0.65);
-  --card-border: rgba(15, 23, 42, 0.08);
-  --card-hover-border: rgba(15, 23, 42, 0.12);
-  --card-shadow: 0 8px 32px rgba(15, 23, 42, 0.04);
+  --card-bg: #ffffff;
+  --card-border: #d0d7de;
+  --card-hover-border: #0969da;
+  --card-shadow: 0 1px 3px rgba(31, 35, 40, 0.05);
   
-  --input-bg: rgba(255, 255, 255, 0.85);
-  --input-border: rgba(15, 23, 42, 0.12);
-  --btn-secondary-bg: rgba(226, 232, 240, 0.8);
-  --btn-secondary-color: #0f172a;
-  --log-container-bg: rgba(241, 245, 249, 0.55);
-  --notes-box-bg: rgba(255, 255, 255, 0.85);
-  --border-color: rgba(15, 23, 42, 0.06);
+  --input-bg: #ffffff;
+  --input-border: #d0d7de;
+  --btn-secondary-bg: #f6f8fa;
+  --btn-secondary-color: #24292f;
+  --log-container-bg: #f6f8fa;
+  --notes-box-bg: #f6f8fa;
+  --border-color: #d0d7de;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Dark mode palette */
-    --bg-color: #0b0f19;
-    --bg-gradient: radial-gradient(at 0% 0%, rgba(20, 30, 80, 0.3) 0, transparent 50%),
-                   radial-gradient(at 50% 0%, rgba(10, 80, 100, 0.2) 0, transparent 50%),
-                   radial-gradient(at 100% 100%, rgba(29, 21, 60, 0.3) 0, transparent 50%);
-    --text-color: #e2e8f0;
-    --text-muted: #94a3b8;
+    /* Dark mode palette (JetBrains / GitHub style) */
+    --bg-color: #0d1117;
+    --bg-gradient: none;
+    --text-color: #e6edf3;
+    --text-muted: #7d8590;
     
-    --card-bg: rgba(15, 23, 42, 0.45);
-    --card-border: rgba(255, 255, 255, 0.06);
-    --card-hover-border: rgba(255, 255, 255, 0.1);
-    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    --card-bg: #161b22;
+    --card-border: #30363d;
+    --card-hover-border: #38bdf8;
+    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
     
-    --input-bg: rgba(30, 41, 59, 0.4);
-    --input-border: rgba(255, 255, 255, 0.1);
-    --btn-secondary-bg: rgba(51, 65, 85, 0.6);
-    --btn-secondary-color: #f1f5f9;
-    --log-container-bg: rgba(15, 23, 42, 0.4);
-    --notes-box-bg: rgba(15, 23, 42, 0.6);
-    --border-color: rgba(255, 255, 255, 0.06);
+    --input-bg: #0d1117;
+    --input-border: #30363d;
+    --btn-secondary-bg: #21262d;
+    --btn-secondary-color: #c9d1d9;
+    --log-container-bg: #0d1117;
+    --notes-box-bg: #0d1117;
+    --border-color: #30363d;
   }
 }
 
@@ -531,300 +556,345 @@ onMounted(() => {
 
 body {
   background-color: var(--bg-color);
-  background-image: var(--bg-gradient);
   color: var(--text-color);
-  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
   transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* Dashboard Layout */
 .dashboard {
-  max-width: 1200px;
+  max-width: 480px;
+  width: 100%;
   margin: 0 auto;
-  padding: 24px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  gap: 24px;
+  height: 100vh;
+  gap: 16px;
+  box-sizing: border-box;
 }
 
-/* Header */
+/* Compact Header Styling */
 .app-header {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  gap: 12px;
+}
+
+.header-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  background: var(--card-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
-  box-shadow: var(--card-shadow);
+  width: 100%;
 }
 
 .header-logo {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .logo-icon {
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
   color: #38bdf8;
-  filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.5));
 }
 
 .header-logo h1 {
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: -0.5px;
-  background: linear-gradient(135deg, var(--text-color) 0%, var(--text-muted) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-color);
 }
 
 .header-logo .version {
-  font-size: 11px;
+  font-size: 9.5px;
   font-family: monospace;
-  background: rgba(128, 128, 128, 0.15);
-  padding: 2px 6px;
+  background: rgba(128, 128, 128, 0.12);
+  padding: 1px 4px;
   border-radius: 4px;
   color: var(--text-muted);
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.btn-setup {
-  background: rgba(56, 189, 248, 0.08);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.15);
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-.btn-setup:hover {
-  background: #38bdf8;
-  color: #0f172a;
-}
-
-.status-indicator {
+.header-right {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.status-label {
-  font-size: 13px;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-.status-badge {
-  display: inline-flex;
+/* Status Indicator Dot */
+.status-dot-wrapper {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 9999px;
-  font-size: 12px;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
 }
 
-.status-badge.connected {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.status-badge.disconnected {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.pulse-dot {
+.status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: currentColor;
+  transition: all 0.3s ease;
 }
 
-.status-badge.connected .pulse-dot {
-  animation: pulse 1.8s infinite;
+.status-dot.connected {
+  background-color: #2ea44f;
+  box-shadow: 0 0 6px rgba(46, 164, 79, 0.4);
 }
 
-@keyframes pulse {
-  0% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7);
-  }
-  70% {
-    transform: scale(1);
-    box-shadow: 0 0 0 6px rgba(52, 211, 153, 0);
-  }
-  100% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
-  }
+.status-dot.disconnected {
+  background-color: #cf222e;
+  box-shadow: 0 0 6px rgba(207, 34, 46, 0.4);
 }
 
-/* Grid Layout */
-.grid-container {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 24px;
-  flex-grow: 1;
-}
-
-@media (max-width: 900px) {
-  .grid-container {
-    grid-template-columns: 1fr;
-  }
-}
-
-.column {
+/* Onboarding Setup Button */
+.btn-onboarding-setup {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
   display: flex;
-  flex-direction: column;
-  gap: 24px;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
-/* Common Card & Form Styles */
-.card {
-  border-radius: 16px;
+.btn-onboarding-setup:hover {
+  color: var(--text-color);
+  background: rgba(128, 128, 128, 0.15);
+}
+
+/* Header Connection Button */
+.btn-header-connect {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(9, 105, 218, 0.08);
+  color: #0969da;
+  border: 1px solid rgba(9, 105, 218, 0.15);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .btn-header-connect {
+    background: rgba(56, 189, 248, 0.08);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.15);
+  }
+}
+
+.btn-header-connect:hover {
+  background: #0969da;
+  color: #ffffff;
+  border-color: #0969da;
+}
+
+@media (prefers-color-scheme: dark) {
+  .btn-header-connect:hover {
+    background: #38bdf8;
+    color: #0d1117;
+    border-color: #38bdf8;
+  }
+}
+
+.btn-header-connect.connected {
+  background: rgba(207, 34, 46, 0.08);
+  color: #cf222e;
+  border-color: rgba(207, 34, 46, 0.15);
+}
+
+.btn-header-connect.connected:hover {
+  background: #cf222e;
+  color: #ffffff;
+  border-color: #cf222e;
+}
+
+/* Tab Switcher */
+.tab-switcher {
   display: flex;
-  flex-direction: column;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
+  background: var(--log-container-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 3px;
+  width: 100%;
 }
 
-.card.glass {
+.tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  color: var(--text-color);
+}
+
+.tab-btn.active {
   background: var(--card-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  color: var(--text-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* Scrollable Container Content */
+.app-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 24px;
+}
+
+/* Custom Scrollbar for App Content */
+.app-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-content::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.25);
+  border-radius: 3px;
+}
+
+.app-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.4);
+}
+
+/* Tab Panel Grid & Animation */
+.tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Common Card Styles - Dense and Engineered */
+.card {
+  border-radius: 12px;
+  background: var(--card-bg);
   border: 1px solid var(--card-border);
   box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s ease;
 }
 
-.card.glass:hover {
-  border: 1px solid var(--card-hover-border);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
-}
-
-.card.highlight-card {
-  border: 1px solid rgba(56, 189, 248, 0.2);
-}
-
-.card.highlight-card:hover {
-  border: 1px solid rgba(56, 189, 248, 0.4);
+.card:hover {
+  border-color: var(--card-hover-border);
 }
 
 .card-header {
-  padding: 18px 24px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .card-icon {
-  color: #38bdf8;
+  color: var(--text-muted);
   opacity: 0.85;
 }
 
 .card-header h2 {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   color: var(--text-color);
 }
 
 .card-body {
-  padding: 24px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 
 .card-actions {
-  margin-top: 10px;
+  margin-top: 6px;
 }
 
+/* Inputs and Forms */
 input {
   width: 100%;
   background: var(--input-bg);
   border: 1px solid var(--input-border);
-  border-radius: 10px;
-  padding: 12px 16px;
+  border-radius: 6px;
+  padding: 8px 12px;
   color: var(--text-color);
-  font-size: 14px;
-  font-family: inherit;
-  transition: all 0.25s ease;
+  font-size: 13px;
+  transition: all 0.2s ease;
   outline: none;
 }
 
 input:focus {
-  border-color: #38bdf8;
+  border-color: var(--card-hover-border);
   box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
 }
 
-/* Button UI */
+/* Button UI - Sharp & Solid */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  border-radius: 10px;
-  padding: 12px 20px;
-  font-size: 14px;
+  gap: 6px;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
   font-weight: 600;
-  font-family: inherit;
   border: none;
   cursor: pointer;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+  background: #0969da;
   color: #ffffff;
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.35);
-}
-
-
-.btn-inline {
-  padding: 4px 10px !important;
-  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
-  color: #ffffff;
-}
-
-.btn-inline:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.35);
+  background: #0c75ef;
 }
 
 .btn-success {
-  background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+  background: #2ea44f;
   color: #ffffff;
 }
 
 .btn-success:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(52, 211, 153, 0.35);
+  background: #2c974b;
 }
 
 .btn-secondary {
@@ -834,12 +904,30 @@ input:focus {
 }
 
 .btn-secondary:hover {
-  background: rgba(128, 128, 128, 0.15);
-  transform: translateY(-2px);
+  background: rgba(128, 128, 128, 0.1);
 }
 
 .btn:active {
-  transform: translateY(0);
+  transform: scale(0.98);
+}
+
+/* Animations */
+.animate-fade {
+  animation: fadeIn 0.25s ease-out;
+}
+
+.animate-slide {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Modal Overlay */
@@ -849,26 +937,26 @@ input:focus {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  padding: 20px;
+  padding: 16px;
 }
 
 /* Modal Card */
 .modal-card {
-  max-width: 550px;
+  max-width: 440px;
   width: 100%;
-  border-radius: 20px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(15, 23, 42, 0.1);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
@@ -876,44 +964,40 @@ input:focus {
 
 @media (prefers-color-scheme: dark) {
   .modal-card {
-    background: rgba(20, 26, 42, 0.95);
+    background: rgba(20, 26, 42, 0.98);
     border: 1px solid rgba(255, 255, 255, 0.08);
   }
 }
 
 .modal-header {
-  padding: 24px;
+  padding: 16px;
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.modal-icon {
-  flex-shrink: 0;
+  gap: 10px;
 }
 
 .modal-header h2 {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text-color);
 }
 
 .modal-body {
-  padding: 24px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .warning-text {
-  font-size: 13.5px;
-  line-height: 1.6;
+  font-size: 12.5px;
+  line-height: 1.5;
   color: var(--text-color);
   background: rgba(239, 68, 68, 0.08);
-  border-left: 4px solid #ef4444;
-  padding: 12px 16px;
-  border-radius: 0 10px 10px 0;
+  border-left: 3px solid #ef4444;
+  padding: 10px 12px;
+  border-radius: 0 6px 6px 0;
 }
 
 .warning-text strong {
@@ -922,40 +1006,89 @@ input:focus {
 
 .warning-text code {
   background: rgba(239, 68, 68, 0.15);
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 2px 4px;
+  border-radius: 3px;
   font-family: monospace;
 }
 
 .info-text {
-  font-size: 13.5px;
-  line-height: 1.6;
+  font-size: 12.5px;
+  line-height: 1.5;
   color: var(--text-muted);
 }
 
 .modal-actions {
-  padding: 20px 24px;
+  padding: 12px 16px;
   border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 10px;
   background: rgba(128, 128, 128, 0.02);
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: #ef4444;
   color: #ffffff;
 }
 
 .btn-danger:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35);
+  background: #dc2626;
 }
 
 .btn-danger:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+}
+
+.status-msg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.status-msg.success {
+  background: rgba(46, 164, 79, 0.1);
+  color: #2ea44f;
+  border: 1px solid rgba(46, 164, 79, 0.2);
+}
+
+.status-msg.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.status-msg.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(128, 128, 128, 0.03);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.input-group label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 </style>

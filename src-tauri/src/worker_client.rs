@@ -1,5 +1,6 @@
 use crate::app_state::AppState;
 use crate::notes::normalize_keyword;
+use crate::secrets::save_admin_token;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::HashMap;
@@ -624,7 +625,10 @@ pub async fn rotate_worker_token(
         return Err(format!("Cloudflare API rejected Admin Token Secret rotation: {status} {body}"));
     }
 
-    // 2. Configure the new token locally in backend state
+    // 2. Persist the new token to the OS keychain
+    save_admin_token(&new_admin_token)?;
+
+    // 3. Configure the new token locally in backend state
     let new_config = WorkerConfig {
         base_url: worker.base_url.clone(),
         admin_token: new_admin_token.clone(),
