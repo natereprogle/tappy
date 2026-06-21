@@ -6,6 +6,7 @@ const props = defineProps<{
   ownerId: string;
   tagMappings: Record<string, string>;
   hasUnsavedChanges?: boolean;
+  disabled?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -175,6 +176,7 @@ function removeMapping(tag: string) {
       <div class="card-actions">
         <button
             :class="['btn', hasUnsavedChanges ? 'btn-warning highlight-btn' : 'btn-primary', 'w-full']"
+            :disabled="disabled"
             @click="emit('push')"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"

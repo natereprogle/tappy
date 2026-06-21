@@ -1,5 +1,4 @@
 use crate::app_state::AppState;
-use crate::secrets::load_admin_token;
 use crate::worker_client::WorkerConfig;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, State};
@@ -11,6 +10,8 @@ pub struct AppSettings {
     pub propresenter_port: u16,
     pub propresenter_endpoint: String,
     pub worker_base_url: String,
+    #[serde(default)]
+    pub admin_token: String,
     pub worker_slug: String,
     pub minimum_kv_write_spacing_ms: u64,
     pub default_redirect_url: String,
@@ -93,29 +94,23 @@ pub async fn load_settings(
     // Synchronize spacing with global redirect queue
     state.redirect_queue.set_min_spacing(settings.minimum_kv_write_spacing_ms);
 
-    // Restore the admin token from the OS keychain into AppState so the app
-    // is fully operational after a restart without user intervention.
-    if !settings.worker_base_url.is_empty() && !settings.worker_slug.is_empty() {
-        match load_admin_token() {
-            Ok(Some(token)) => {
-                let config = WorkerConfig {
-                    base_url: settings.worker_base_url.clone(),
-                    admin_token: token,
-                    slug: settings.worker_slug.clone(),
-                };
-                let mut guard = state.worker.write().await;
-                *guard = Some(config);
-            }
-            Ok(None) => {
-                // No token stored yet — user will need to go through onboarding
-                // or a password rotation to re-establish the credential.
-            }
-            Err(e) => {
-                // Non-fatal: log to stderr, proceed without token
-                eprintln!("[tappy] Warning: could not read admin token from keychain: {e}");
-            }
-        }
-    }
+    // Restore the worker configuration from settings so the app is fully
+    // operational after a restart without user intervention.
+    let worker_config = if !settings.worker_base_url.is_empty()
+        && !settings.admin_token.is_empty()
+        && !settings.worker_slug.is_empty()
+    {
+        Some(WorkerConfig {
+            base_url: settings.worker_base_url.clone(),
+            admin_token: settings.admin_token.clone(),
+            slug: settings.worker_slug.clone(),
+        })
+    } else {
+        None
+    };
+
+    let mut guard = state.worker.write().await;
+    *guard = worker_config;
 
     Ok(settings)
-}
+}

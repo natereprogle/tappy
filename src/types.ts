@@ -3,6 +3,7 @@ export interface AppSettings {
   propresenter_port: number;
   propresenter_endpoint: string;
   worker_base_url: string;
+  admin_token: string;
   worker_slug: string;
   minimum_kv_write_spacing_ms: number;
   default_redirect_url: string;

@@ -13,6 +13,7 @@ import ActivityFeed from "./components/ActivityFeed.vue";
 
 // Navigation / Mode
 const isOnboardingComplete = ref(false);
+const isConfigLoaded = ref(false);
 const activeTab = ref<"dashboard" | "settings" | "advanced">("dashboard");
 
 // Config States
@@ -63,6 +64,7 @@ async function loadConfig() {
     propresenterPort.value = settings.propresenter_port;
     propresenterEndpoint.value = settings.propresenter_endpoint;
     workerBaseUrl.value = settings.worker_base_url;
+    workerAdminToken.value = settings.admin_token || "";
     workerSlug.value = settings.worker_slug;
     minSpacingMs.value = settings.minimum_kv_write_spacing_ms;
     
@@ -72,23 +74,25 @@ async function loadConfig() {
     tagMappings.value = settings.tag_mappings || {};
     originalTagMappings.value = JSON.stringify(settings.tag_mappings || {});
 
-    if (workerBaseUrl.value) {
+    // load_settings restores the full worker configuration from settings.json.
+    // Keep this fallback for compatibility with any backend state already
+    // initialized during the current app session.
+    const workerConfig = await invoke<WorkerConfig | null>("get_worker_config");
+    if (workerConfig) {
+      workerAdminToken.value = workerConfig.admin_token;
+    }
+
+    if (workerBaseUrl.value && workerAdminToken.value && workerSlug.value) {
       isOnboardingComplete.value = true;
       addLog("info", "Settings loaded from disk");
     } else {
       isOnboardingComplete.value = false;
       addLog("info", "No settings found. Entering onboarding flow...");
     }
-
-    // load_settings already restores the admin token from the OS keychain
-    // into AppState. We call get_worker_config here only to sync the token
-    // back to the Vue layer so that subsequent saveConfig() calls include it.
-    const workerConfig = await invoke<WorkerConfig | null>("get_worker_config");
-    if (workerConfig) {
-      workerAdminToken.value = workerConfig.admin_token;
-    }
   } catch (err) {
     addLog("error", `Failed to load settings: ${err}`);
+  } finally {
+    isConfigLoaded.value = true;
   }
 }
 
@@ -99,6 +103,7 @@ async function saveConfig() {
       propresenter_port: propresenterPort.value,
       propresenter_endpoint: propresenterEndpoint.value,
       worker_base_url: workerBaseUrl.value,
+      admin_token: workerAdminToken.value,
       worker_slug: workerSlug.value,
       minimum_kv_write_spacing_ms: minSpacingMs.value,
       default_redirect_url: defaultRedirectUrl.value,
@@ -429,6 +434,7 @@ onMounted(() => {
             v-model:ownerId="linkOwnerId"
             v-model:tagMappings="tagMappings"
             :hasUnsavedChanges="hasUnsavedMappings"
+            :disabled="!isConfigLoaded"
             @push="pushTagMappings"
           />
         </div>
@@ -474,7 +480,7 @@ onMounted(() => {
             <strong>Warning:</strong> This will rotate the <code>ADMIN_TOKEN</code> secret on your Cloudflare Worker. The worker will require this new token for all incoming commands. Your currently configured redirect tags will be immediately synchronized.
           </p>
           <p class="info-text">
-            To redeploy and set the secret, you will need your <strong>Cloudflare Account ID</strong> and <strong>User API Token</strong>.
+            The <code>ADMIN_TOKEN</code> is essentially the API Key to the Cloudflare Worker. If it gets compromised, an attacker can use it to modify your redirect links, but nothing else. To redeploy and reset the secret, you will need your <strong>Cloudflare Account ID</strong> and <strong>User API Token</strong>.
             These credentials are processed in-memory and are <strong>never saved to disk</strong>.
           </p>
 

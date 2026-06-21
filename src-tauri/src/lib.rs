@@ -2,13 +2,11 @@ mod app_state;
 mod notes;
 mod propresenter;
 mod redirect_queue;
-mod secrets;
 mod settings;
 mod worker_client;
 
 use app_state::{AppState, AppStateInner};
 use propresenter::{start_propresenter_listener, stop_propresenter_listener};
-use secrets::save_admin_token;
 use settings::{load_settings, save_settings};
 use std::sync::Arc;
 use tauri::{Emitter, State};
@@ -24,9 +22,6 @@ async fn configure_worker(
     admin_token: String,
     slug: String,
 ) -> Result<(), String> {
-    // Persist to OS keychain before updating in-memory state
-    save_admin_token(&admin_token)?;
-
     let config = WorkerConfig {
         base_url,
         admin_token,
