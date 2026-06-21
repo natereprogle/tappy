@@ -57,82 +57,88 @@ defineProps<{
 </template>
 
 <style scoped>
+.card {
+  transition: transform 0.2s ease;
+}
+
 .slide-notes-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .slide-notes-container label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .notes-box {
   background: var(--notes-box-bg);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 16px;
-  font-size: 15px;
+  border-radius: 16px;
+  padding: 20px;
+  font-size: 16px;
   line-height: 1.6;
   color: var(--text-color);
-  min-height: 80px;
+  min-height: 100px;
   white-space: pre-wrap;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .parsed-results {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   border-top: 1px solid var(--border-color);
-  padding-top: 20px;
+  padding-top: 24px;
 }
 
 .tag-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .section-label {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   opacity: 0.8;
 }
 
 .tag-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .tag {
-  padding: 6px 12px;
-  border-radius: 8px;
+  padding: 6px 14px;
+  border-radius: 10px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
+  transition: all 0.2s ease;
 }
 
 .badge-regular {
-  background: rgba(56, 189, 248, 0.12);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary-color);
+  border: 1px solid rgba(99, 102, 241, 0.2);
 }
 
 .badge-warning {
-  background: rgba(234, 179, 8, 0.12);
-  color: #facc15;
-  border: 1px solid rgba(234, 179, 8, 0.25);
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 .text-warning {
-  color: #facc15 !important;
+  color: var(--warning) !important;
 }
 
 .tag-empty {
@@ -144,31 +150,39 @@ defineProps<{
 
 .timestamp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
 }
 
 .timestamp-pill {
   display: flex;
-  background: rgba(139, 92, 246, 0.1);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  border-radius: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
   overflow: hidden;
   font-size: 13px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.timestamp-pill:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
 }
 
 .timestamp-pill .time {
-  background: rgba(139, 92, 246, 0.2);
-  color: #c084fc;
-  padding: 6px 10px;
-  font-weight: 700;
-  font-family: monospace;
+  background: var(--primary-color);
+  color: white;
+  padding: 8px 12px;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
 }
 
 .timestamp-pill .word {
   color: var(--text-color);
-  padding: 6px 10px;
-  font-weight: 500;
+  padding: 8px 12px;
+  font-weight: 600;
   display: flex;
   align-items: center;
   overflow: hidden;

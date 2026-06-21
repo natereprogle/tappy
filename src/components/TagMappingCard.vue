@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import {ref} from "vue";
 
 const props = defineProps<{
   defaultUrl: string;
@@ -38,7 +38,7 @@ function saveMapping() {
     return;
   }
 
-  const updated = { ...props.tagMappings };
+  const updated = {...props.tagMappings};
 
   if (editingTag.value) {
     // If we changed the tag name, make sure the new name isn't already taken by another mapping
@@ -82,7 +82,7 @@ function removeMapping(tag: string) {
   if (editingTag.value === tag) {
     cancelEdit();
   }
-  const updated = { ...props.tagMappings };
+  const updated = {...props.tagMappings};
   delete updated[tag];
   emit("update:tagMappings", updated);
 }
@@ -91,7 +91,11 @@ function removeMapping(tag: string) {
 <template>
   <div class="card glass">
     <div class="card-header">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="card-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="card-icon">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+        <line x1="7" y1="7" x2="7.01" y2="7"/>
+      </svg>
       <h2>Redirect Tag Mapping</h2>
     </div>
     <div class="card-body">
@@ -99,26 +103,26 @@ function removeMapping(tag: string) {
         <div class="input-group">
           <label for="fallback-url">Fallback URL</label>
           <input
-            id="fallback-url"
-            :value="defaultUrl"
-            @input="emit('update:defaultUrl', ($event.target as HTMLInputElement).value)"
-            placeholder="e.g. https://mychurch.com"
+              id="fallback-url"
+              :value="defaultUrl"
+              @input="emit('update:defaultUrl', ($event.target as HTMLInputElement).value)"
+              placeholder="e.g. https://mychurch.com"
           />
         </div>
         <div class="input-group">
           <label for="owner-id">Owner ID</label>
           <input
-            id="owner-id"
-            :value="ownerId"
-            @input="emit('update:ownerId', ($event.target as HTMLInputElement).value)"
-            placeholder="e.g. church_staff"
+              id="owner-id"
+              :value="ownerId"
+              @input="emit('update:ownerId', ($event.target as HTMLInputElement).value)"
+              placeholder="e.g. church_staff"
           />
         </div>
       </div>
 
       <div class="mappings-editor">
         <span class="editor-label">Mapped Redirect Tags</span>
-        
+
         <div class="mappings-list">
           <div v-for="(url, tag) in tagMappings" :key="tag" class="mapping-item">
             <span class="mapping-tag">#{{ tag }}</span>
@@ -126,10 +130,18 @@ function removeMapping(tag: string) {
             <span class="mapping-url" :title="url">{{ url }}</span>
             <div class="action-buttons">
               <button class="btn-edit" @click="startEdit(tag as string, url as string)" title="Edit mapping">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 20h9"/>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                </svg>
               </button>
               <button class="btn-delete" @click="removeMapping(tag as string)" title="Delete mapping">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
               </button>
             </div>
           </div>
@@ -142,30 +154,38 @@ function removeMapping(tag: string) {
           <div class="input-row align-end">
             <div class="input-group size-small">
               <label for="new-tag">{{ editingTag ? 'Editing Tag' : 'Tag' }}</label>
-              <input id="new-tag" v-model="newTag" :placeholder="editingTag ? 'edit tag' : 'e.g. sermon'" @keyup.enter="saveMapping" />
+              <input id="new-tag" v-model="newTag" :placeholder="editingTag ? 'edit tag' : 'e.g. sermon'"
+                     @keyup.enter="saveMapping"/>
             </div>
             <div class="input-group flex-grow">
               <label for="new-url">Redirect Target URL</label>
-              <input id="new-url" v-model="newUrl" placeholder="https://example.com/notes" @keyup.enter="saveMapping" />
+              <input id="new-url" v-model="newUrl" placeholder="https://example.com/notes" @keyup.enter="saveMapping"/>
             </div>
-            <div class="button-group">
-              <button class="btn btn-add" @click="saveMapping">
-                {{ editingTag ? 'Save' : 'Add' }}
-              </button>
-              <button v-if="editingTag" class="btn btn-secondary btn-cancel" @click="cancelEdit">Cancel</button>
-            </div>
+          </div>
+          <div class="button-group">
+            <button class="btn btn-add" @click="saveMapping">
+              {{ editingTag ? 'Save' : 'Add' }}
+            </button>
+            <button v-if="editingTag" class="btn btn-secondary btn-cancel" @click="cancelEdit">Cancel</button>
           </div>
           <p v-if="addError" class="add-error">{{ addError }}</p>
         </div>
       </div>
 
       <div class="card-actions">
-        <button 
-          :class="['btn', hasUnsavedChanges ? 'btn-warning highlight-btn' : 'btn-primary', 'w-full']" 
-          @click="emit('push')"
+        <button
+            :class="['btn', hasUnsavedChanges ? 'btn-warning highlight-btn' : 'btn-primary', 'w-full']"
+            @click="emit('push')"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          {{ hasUnsavedChanges ? 'Push Unsaved Mappings to Cloudflare Worker' : 'Push Tag Mappings to Cloudflare Worker' }}
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          {{
+            hasUnsavedChanges ? 'Push Unsaved Mappings to Cloudflare Worker' : 'Push Tag Mappings to Cloudflare Worker'
+          }}
         </button>
       </div>
     </div>
@@ -201,60 +221,70 @@ function removeMapping(tag: string) {
 }
 
 .input-group label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .mappings-editor {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   border-top: 1px solid var(--border-color);
-  padding-top: 20px;
+  padding-top: 24px;
+  margin-top: 8px;
 }
 
 .editor-label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 800;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .mappings-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 180px;
+  max-height: 220px;
   overflow-y: auto;
   background: var(--log-container-bg);
-  border-radius: 10px;
-  padding: 10px;
+  border-radius: 16px;
+  padding: 12px;
   border: 1px solid var(--border-color);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .mapping-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 10px;
+  padding: 10px 14px;
   background: var(--card-bg);
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid var(--border-color);
   font-size: 13px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.mapping-item:hover {
+  border-color: var(--primary-color);
+  transform: translateX(4px);
 }
 
 .mapping-tag {
-  font-weight: 700;
-  color: #38bdf8;
+  font-weight: 800;
+  color: var(--primary-color);
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .mapping-arrow {
   color: var(--text-muted);
-  opacity: 0.5;
+  opacity: 0.3;
 }
 
 .mapping-url {
@@ -263,112 +293,115 @@ function removeMapping(tag: string) {
   text-overflow: ellipsis;
   white-space: nowrap;
   flex-grow: 1;
+  font-size: 12px;
 }
 
 .action-buttons {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .btn-delete, .btn-edit {
-  background: none;
+  background: var(--btn-secondary-bg);
   border: none;
   color: var(--text-muted);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 6px;
+  border-radius: 8px;
   transition: all 0.2s ease;
-  opacity: 0.7;
 }
 
 .btn-delete:hover {
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.1);
-  opacity: 1;
+  color: white;
+  background: var(--error);
 }
 
 .btn-edit:hover {
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.1);
-  opacity: 1;
+  color: white;
+  background: var(--primary-color);
 }
 
 .mappings-empty {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-muted);
   font-style: italic;
   text-align: center;
-  padding: 24px 0;
+  padding: 40px 20px;
   opacity: 0.6;
 }
 
 .add-mapping-form {
-  margin-top: 6px;
-  background: rgba(128, 128, 128, 0.05);
-  border: 1px dashed var(--border-color);
-  border-radius: 10px;
-  padding: 12px;
+  margin-top: 8px;
+  background: var(--bg-color);
+  border: 2px dashed var(--border-color);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .button-group {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .btn-add {
-  background: rgba(56, 189, 248, 0.1);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  height: 44px;
+  flex: 1;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  height: 40px;
   padding: 0 16px;
   border-radius: 10px;
   cursor: pointer;
-  font-weight: 600;
-  font-family: inherit;
-  transition: all 0.25s ease;
+  font-weight: 700;
+  font-size: 13px;
+  transition: all 0.2s ease;
 }
 
 .btn-add:hover {
-  background: #38bdf8;
-  color: #0f172a;
-  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .btn-cancel {
   background: var(--btn-secondary-bg);
-  color: var(--btn-secondary-color);
+  color: var(--text-color);
   border: 1px solid var(--border-color);
-  height: 44px;
+  height: 40px;
   padding: 0 16px;
   border-radius: 10px;
   cursor: pointer;
-  font-weight: 600;
-  font-family: inherit;
-  transition: all 0.25s ease;
+  font-weight: 700;
+  font-size: 13px;
+  transition: all 0.2s ease;
 }
 
 .btn-cancel:hover {
-  background: rgba(128, 128, 128, 0.15);
+  background: var(--border-color);
 }
 
 .add-error {
   font-size: 12px;
-  color: #f87171;
-  margin-top: 8px;
-  font-weight: 500;
+  color: var(--error);
+  margin-top: 4px;
+  font-weight: 600;
+  text-align: center;
 }
 
 .btn-warning {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-  color: #ffffff !important;
+  background: var(--warning) !important;
+  color: white !important;
 }
 
 .btn-warning:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3) !important;
 }
 </style>

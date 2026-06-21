@@ -92,11 +92,11 @@ const minSpacingMsVal = computed({
 }
 
 .input-group label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .button-group {
@@ -109,20 +109,32 @@ const minSpacingMsVal = computed({
 }
 
 .reset-action {
-  margin-top: -4px;
+  margin-top: 12px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 16px;
 }
 
 .btn-danger-outline {
   width: 100%;
-  background: rgba(239, 68, 68, 0.08);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: transparent;
+  color: var(--error);
+  border: 1px solid var(--error);
+  padding: 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
 }
 
 .btn-danger-outline:hover {
-  background: #ef4444;
+  background: var(--error);
   color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
 </style>

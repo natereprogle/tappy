@@ -562,59 +562,62 @@ async function openLink() {
 }
 
 .step-num {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: var(--text-muted);
-  color: var(--bg-color);
-  font-size: 12px;
-  font-weight: 700;
+  background: var(--btn-secondary-bg);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
 }
 
 .step-tab.active .step-num {
-  background: #38bdf8;
-  color: #0b0f19;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+  background: var(--primary-color);
+  color: white;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
 }
 
 .step-title-display {
-  font-size: 12.5px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 800;
   color: var(--text-color);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .step-divider {
-  width: 48px;
+  width: 40px;
   height: 2px;
   background: var(--border-color);
+  border-radius: 2px;
 }
 
 /* Step Content Styles */
 .step-content {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .step-content h3 {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 800;
   color: var(--text-color);
+  letter-spacing: -0.5px;
 }
 
 .instructions-text {
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.6;
   color: var(--text-muted);
 }
 
 .font-small {
-  font-size: 13.5px;
+  font-size: 14px;
 }
 
 .color-muted {
@@ -624,36 +627,47 @@ async function openLink() {
 .step-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-left: 20px;
-  font-size: 14px;
+  gap: 14px;
+  padding-left: 0;
+  list-style: none;
+  font-size: 15px;
   line-height: 1.6;
   color: var(--text-color);
 }
 
 .step-list li {
-  margin-bottom: 4px;
+  position: relative;
+  padding-left: 28px;
+}
+
+.step-list li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--primary-color);
+  font-weight: 800;
 }
 
 .step-list li strong {
-  color: #38bdf8;
-  font-weight: 600;
+  color: var(--primary-color);
+  font-weight: 700;
 }
 
 .form-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  background: rgba(128, 128, 128, 0.03);
-  padding: 20px;
-  border-radius: 12px;
+  gap: 20px;
+  background: var(--bg-color);
+  padding: 24px;
+  border-radius: 20px;
   border: 1px solid var(--border-color);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .endpoint-setup {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .slug-input-wrapper {
@@ -661,7 +675,7 @@ async function openLink() {
   align-items: center;
   background: var(--input-bg);
   border: 1px solid var(--input-border);
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 0 16px;
   overflow: hidden;
 }

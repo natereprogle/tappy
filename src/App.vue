@@ -13,7 +13,7 @@ import ActivityFeed from "./components/ActivityFeed.vue";
 
 // Navigation / Mode
 const isOnboardingComplete = ref(false);
-const activeTab = ref<"dashboard" | "settings">("dashboard");
+const activeTab = ref<"dashboard" | "settings" | "advanced">("dashboard");
 
 // Config States
 const propresenterHost = ref("127.0.0.1");
@@ -377,10 +377,6 @@ onMounted(() => {
               <svg v-else xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
               <span>{{ isProPresenterConnected ? 'Disconnect' : 'Connect' }}</span>
             </button>
-            
-            <button class="btn-onboarding-setup" title="Run Onboarding Setup" @click="isOnboardingComplete = false">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            </button>
           </div>
         </div>
         
@@ -390,8 +386,12 @@ onMounted(() => {
             Dashboard
           </button>
           <button :class="['tab-btn', activeTab === 'settings' ? 'active' : '']" @click="activeTab = 'settings'">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
             Settings
+          </button>
+          <button :class="['tab-btn', activeTab === 'advanced' ? 'active' : '']" @click="activeTab = 'advanced'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16.07 16.07 1.41 1.41"/><path d="m16.07 7.93 1.41-1.41"/><path d="m7.93 16.07-1.41 1.41"/><path d="m7.93 7.93-1.41-1.41"/><path d="M12 12V2"/><path d="M12 12v10"/><path d="M12 12H2"/><path d="M12 12h10"/></svg>
+            Advanced
           </button>
         </div>
       </header>
@@ -423,6 +423,18 @@ onMounted(() => {
             @disconnect="disconnectFromProPresenter"
           />
 
+          <!-- TAG MAPPING EDITOR -->
+          <TagMappingCard
+            v-model:defaultUrl="defaultRedirectUrl"
+            v-model:ownerId="linkOwnerId"
+            v-model:tagMappings="tagMappings"
+            :hasUnsavedChanges="hasUnsavedMappings"
+            @push="pushTagMappings"
+          />
+        </div>
+
+        <!-- TAB 3: ADVANCED -->
+        <div v-else-if="activeTab === 'advanced'" class="tab-panel animate-fade">
           <!-- CLOUDFLARE WORKER CONFIG -->
           <WorkerConfigCard
             v-model:baseUrl="workerBaseUrl"
@@ -433,14 +445,19 @@ onMounted(() => {
             @reset-password="showRotateModal = true"
           />
 
-          <!-- TAG MAPPING EDITOR -->
-          <TagMappingCard
-            v-model:defaultUrl="defaultRedirectUrl"
-            v-model:ownerId="linkOwnerId"
-            v-model:tagMappings="tagMappings"
-            :hasUnsavedChanges="hasUnsavedMappings"
-            @push="pushTagMappings"
-          />
+          <!-- REDO ONBOARDING -->
+          <div class="card redo-onboarding-card">
+            <div class="card-header">
+              <div class="header-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              </div>
+              <h3>System Setup</h3>
+            </div>
+            <p class="card-description">Need to reconfigure your environment? You can rerun the initial setup process to rebuild your Cloudflare Worker or update your credentials.</p>
+            <button class="btn-redo-onboarding" @click="isOnboardingComplete = false">
+              Redo Onboarding Setup
+            </button>
+          </div>
         </div>
       </main>
     </template>
@@ -504,46 +521,51 @@ onMounted(() => {
 <style>
 /* CSS VARIABLES - Automatically aligned with system light/dark settings */
 :root {
-  /* Light mode palette (GitHub / JetBrains style) */
-  --bg-color: #f6f8fa;
-  --bg-gradient: none;
-  --text-color: #1f2328;
-  --text-muted: #657180;
+  --primary-color: #6366f1;
+  --primary-hover: #4f46e5;
+  --bg-color: #f8fafc;
+  --text-color: #0f172a;
+  --text-muted: #64748b;
   
   --card-bg: #ffffff;
-  --card-border: #d0d7de;
-  --card-hover-border: #0969da;
-  --card-shadow: 0 1px 3px rgba(31, 35, 40, 0.05);
+  --card-border: #e2e8f0;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --card-radius: 16px;
+  --card-hover-border: var(--primary-color);
   
   --input-bg: #ffffff;
-  --input-border: #d0d7de;
-  --btn-secondary-bg: #f6f8fa;
-  --btn-secondary-color: #24292f;
-  --log-container-bg: #f6f8fa;
-  --notes-box-bg: #f6f8fa;
-  --border-color: #d0d7de;
+  --input-border: #e2e8f0;
+  --btn-secondary-bg: #f1f5f9;
+  --btn-secondary-color: #475569;
+  --log-container-bg: #f8fafc;
+  --notes-box-bg: #f8fafc;
+  --border-color: #e2e8f0;
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Dark mode palette (JetBrains / GitHub style) */
-    --bg-color: #0d1117;
-    --bg-gradient: none;
-    --text-color: #e6edf3;
-    --text-muted: #7d8590;
+    --primary-color: #818cf8;
+    --primary-hover: #6366f1;
+    --bg-color: #020617;
+    --text-color: #f1f5f9;
+    --text-muted: #94a3b8;
     
-    --card-bg: #161b22;
-    --card-border: #30363d;
-    --card-hover-border: #38bdf8;
-    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    --card-bg: #1e293b;
+    --card-border: rgba(255, 255, 255, 0.05);
+    --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
     
-    --input-bg: #0d1117;
-    --input-border: #30363d;
-    --btn-secondary-bg: #21262d;
-    --btn-secondary-color: #c9d1d9;
-    --log-container-bg: #0d1117;
-    --notes-box-bg: #0d1117;
-    --border-color: #30363d;
+    --input-bg: #0f172a;
+    --input-border: #334155;
+    --btn-secondary-bg: #334155;
+    --btn-secondary-color: #e2e8f0;
+    --log-container-bg: #0f172a;
+    --notes-box-bg: #0f172a;
+    --border-color: #334155;
   }
 }
 
@@ -557,23 +579,25 @@ onMounted(() => {
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
   transition: background 0.3s ease, color 0.3s ease;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Dashboard Layout */
 .dashboard {
-  max-width: 480px;
+  max-width: 520px;
   width: 100%;
   margin: 0 auto;
-  padding: 16px;
+  padding: 24px 16px;
   display: flex;
   flex-direction: column;
   height: 100vh;
-  gap: 16px;
+  gap: 20px;
   box-sizing: border-box;
 }
 
@@ -581,12 +605,12 @@ body {
 .app-header {
   display: flex;
   flex-direction: column;
-  padding: 12px 16px;
+  padding: 16px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 12px;
+  border-radius: 20px;
   box-shadow: var(--card-shadow);
-  gap: 12px;
+  gap: 16px;
 }
 
 .header-top {
@@ -599,34 +623,37 @@ body {
 .header-logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .logo-icon {
-  width: 20px;
-  height: 20px;
-  color: #38bdf8;
+  width: 24px;
+  height: 24px;
+  color: var(--primary-color);
+  filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.3));
 }
 
 .header-logo h1 {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
   color: var(--text-color);
+  letter-spacing: -0.5px;
 }
 
 .header-logo .version {
-  font-size: 9.5px;
-  font-family: monospace;
-  background: rgba(128, 128, 128, 0.12);
-  padding: 1px 4px;
-  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: var(--btn-secondary-bg);
+  padding: 2px 6px;
+  border-radius: 6px;
   color: var(--text-muted);
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 /* Status Indicator Dot */
@@ -634,106 +661,86 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  position: relative;
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   transition: all 0.3s ease;
 }
 
 .status-dot.connected {
-  background-color: #2ea44f;
-  box-shadow: 0 0 6px rgba(46, 164, 79, 0.4);
+  background-color: var(--success);
+  box-shadow: 0 0 12px var(--success);
 }
 
 .status-dot.disconnected {
-  background-color: #cf222e;
-  box-shadow: 0 0 6px rgba(207, 34, 46, 0.4);
+  background-color: var(--error);
+  box-shadow: 0 0 12px var(--error);
 }
 
 /* Onboarding Setup Button */
 .btn-onboarding-setup {
-  background: none;
+  background: var(--btn-secondary-bg);
   border: none;
   color: var(--text-muted);
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 10px;
+  cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-onboarding-setup:hover {
   color: var(--text-color);
-  background: rgba(128, 128, 128, 0.15);
+  background: var(--border-color);
 }
 
 /* Header Connection Button */
 .btn-header-connect {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 4px;
-  background: rgba(9, 105, 218, 0.08);
-  color: #0969da;
-  border: 1px solid rgba(9, 105, 218, 0.15);
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 11px;
-  font-weight: 700;
+  gap: 6px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-@media (prefers-color-scheme: dark) {
-  .btn-header-connect {
-    background: rgba(56, 189, 248, 0.08);
-    color: #38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.15);
-  }
 }
 
 .btn-header-connect:hover {
-  background: #0969da;
-  color: #ffffff;
-  border-color: #0969da;
-}
-
-@media (prefers-color-scheme: dark) {
-  .btn-header-connect:hover {
-    background: #38bdf8;
-    color: #0d1117;
-    border-color: #38bdf8;
-  }
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .btn-header-connect.connected {
-  background: rgba(207, 34, 46, 0.08);
-  color: #cf222e;
-  border-color: rgba(207, 34, 46, 0.15);
+  background: var(--btn-secondary-bg);
+  color: var(--text-color);
 }
 
 .btn-header-connect.connected:hover {
-  background: #cf222e;
-  color: #ffffff;
-  border-color: #cf222e;
+  background: var(--error);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 /* Tab Switcher */
 .tab-switcher {
   display: flex;
-  background: var(--log-container-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 3px;
-  width: 100%;
+  background: var(--btn-secondary-bg);
+  padding: 4px;
+  border-radius: 12px;
+  gap: 4px;
 }
 
 .tab-btn {
@@ -741,16 +748,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
+  padding: 8px 12px;
   border: none;
-  background: none;
+  background: transparent;
   color: var(--text-muted);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .tab-btn:hover {
@@ -759,8 +766,8 @@ body {
 
 .tab-btn.active {
   background: var(--card-bg);
-  color: var(--text-color);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  color: var(--primary-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 /* Scrollable Container Content */
@@ -1090,5 +1097,63 @@ input:focus {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Redo Onboarding Card */
+.redo-onboarding-card {
+  padding: 20px;
+  gap: 16px;
+  text-align: center;
+  background: linear-gradient(to bottom right, var(--card-bg), var(--bg-color));
+}
+
+.redo-onboarding-card .card-header {
+  border-bottom: none;
+  padding: 0;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.redo-onboarding-card .header-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--btn-secondary-bg);
+  color: var(--primary-color);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.redo-onboarding-card h3 {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.redo-onboarding-card .card-description {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.btn-redo-onboarding {
+  background: var(--btn-secondary-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-redo-onboarding:hover {
+  background: var(--border-color);
+  transform: translateY(-1px);
 }
 </style>

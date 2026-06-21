@@ -55,15 +55,6 @@ const portVal = computed({
 </template>
 
 <style scoped>
-.input-row {
-  display: flex;
-  gap: 16px;
-}
-
-.flex-grow {
-  flex-grow: 1;
-}
-
 .input-group {
   display: flex;
   flex-direction: column;
@@ -72,11 +63,11 @@ const portVal = computed({
 }
 
 .input-group label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .card-actions {
@@ -88,13 +79,13 @@ const portVal = computed({
 }
 
 .danger-btn {
-  background: rgba(239, 68, 68, 0.08) !important;
-  color: #ef4444 !important;
-  border: 1px solid rgba(239, 68, 68, 0.15) !important;
+  background: var(--btn-secondary-bg) !important;
+  color: var(--text-color) !important;
 }
 
 .danger-btn:hover {
-  background: #ef4444 !important;
+  background: var(--error) !important;
   color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 </style>
